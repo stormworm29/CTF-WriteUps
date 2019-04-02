@@ -1,0 +1,45 @@
+Bitterman is a 64 bit binary executable.
+
+Data Execution Prevention is enabled
+	The data storage location(stack) are marked as a non executable or read only, so it cannot be executed.
+	This is marked as NX in gdb-peda checksec extension.
+
+#additional info:
+	other options on checksec in gdb-peda
+		1. CANARY -> puts some value into register the user input and checks it after the user input. Mainly used on buffer overflow detection. if value is changed that means that stack is already smashed.
+		2. FORTIFY -> replaces vulnerable calls with equivalent normal calls.
+		3. PIE( Position Independent Executables ) -> ASLR
+	puts is the place to write a string such that it is outputed to the screen. So BOF happens and Leaking of address happens here.
+	
+	objdump is used to  dis assemble the entire binary and grep can be used to fetch the specific offset.
+So return to libc kind of attack is used over this binary.
+
+$objdump -D bitterman | grep puts
+
+It provides the Procedural Link Table(plt) and the Global Offset Table(got) of the puts
+
+In 64 bit, systems the arguements are placed in registers instead of stacks. And the storage order is  RDI, RSI, RDX, RCX.
+
+Radare is used to get the value in the RDI 
+
+$r2 bitterman 
+$/R pop rdi
+
+since the buffer over flow happens at 151st character. (calculated using the pattern create and offset option) the offset is got using the gdb and "pattern offset <offset>" is used to calculated the overflow point.
+
+payload is crafted as junk + pop_rdi + got_put + plt_put + plt_main
+
+here after crashing the binary to hold the binary operating the main is also appended to it.
+
+this gives away the leaked memory address.
+
+the libc put, ssys are calculated using the objdump, and sh is calculated using just the strings
+
+strings -a -t X bitterman | grep /bin/sh
+
+with the leaked puts memory address and libc_put memory address the offset is calculated. and which is the offset for both sys and sh. 
+
+and the payload is crafted with the junk, pop_rdi, sh and sys
+
+this fetches the shell directly.
+
