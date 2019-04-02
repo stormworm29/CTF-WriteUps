@@ -43,3 +43,8 @@ and the payload is crafted with the junk, pop_rdi, sh and sys
 
 this fetches the shell directly.
 
+
+references.
+
+https://blog.skullsecurity.org/2015/defcon-quals-r0pbaby-simple-64-bit-rop
+
